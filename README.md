@@ -1,1 +1,1 @@
-# PoC Project for learning deployment to k8s cluster (AKS) using helm and argocd 
+# PoC Project for learning deployment to k8s cluster (AKS) using helm and argocd  
