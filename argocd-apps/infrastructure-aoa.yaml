@@ -1,22 +1,19 @@
-
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: infrastructure-aoa
   namespace: argocd
 spec:
   project: infrastructure
   source:
     repoURL: 'https://github.com/blurry-anya/poc-aks-helm-argocd.git'
-    path: kustomizations/argocd
+    path: argocd-apps/infrastructure
     targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: infrastructure
   syncPolicy:
     automated:
-      prune: false
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-
