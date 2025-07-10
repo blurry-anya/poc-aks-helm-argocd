@@ -10,6 +10,7 @@ spec:
     chart: ingress-nginx
     targetRevision: 4.12.1
     helm:
+      releaseName: ingress-nginx
       values: |
         controller:
           service:
