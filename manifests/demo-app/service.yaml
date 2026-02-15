@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: echo-server
-  namespace: monitoring
 spec:
   selector:
     app: echo-server
