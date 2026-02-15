@@ -14,3 +14,5 @@ resources:
   # Traefik BasicAuth Middleware (references Secret bw-basic-auth, key "users")
   - middleware-basicauth.yaml
   - ingress-echo-app.yaml
+  # Debug: no-auth ingress to test backend (remove when 503 is resolved)
+  - ingress-echo-app-debug-noauth.yaml

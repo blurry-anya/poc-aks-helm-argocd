@@ -21,9 +21,12 @@ spec:
           kubernetesIngress:
             enabled: true
             ingressClass: traefik
+            # Empty = watch all namespaces (required for Ingress in monitoring-stage)
+            namespaces: []
           kubernetesCRD:
             enabled: true
             ingressClass: traefik
+            namespaces: []
           kubernetesGateway:
             enabled: false
         # Gateway stays enabled (port 8000); we use Kubernetes Ingress with class "traefik"

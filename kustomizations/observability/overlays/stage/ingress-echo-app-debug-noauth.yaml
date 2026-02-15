@@ -1,0 +1,22 @@
+# Debug only: same backend, no BasicAuth. Use to confirm Traefik can reach echo-server.
+# If this returns 200 but the main host returns 503, the issue is BasicAuth (Secret/Middleware).
+# Remove from kustomization.yaml resources when done debugging.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echo-app-stage-debug-noauth
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: demoapp-debug.sixthnode.external.stage.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: echo-server
+                port:
+                  number: 80
