@@ -15,7 +15,7 @@ spec:
         controller:
           service:
             type: LoadBalancer
-            loadBalancerIP: 98.71.215.58  
+            # loadBalancerIP: 98.71.215.58  # set in overlay for AKS; leave unset for Rancher Desktop
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
