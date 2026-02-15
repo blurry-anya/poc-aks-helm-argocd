@@ -8,7 +8,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  ingressClassName: traefik
+  ingressClassName: traefik-argocd
   rules:
     - host: demoapp-debug.sixthnode.external.stage.xyz
       http:

@@ -12,28 +12,29 @@ spec:
     helm:
       releaseName: traefik
       values: |
-        # Run alongside ingress-nginx: distinct ingress class, NodePort for local
+        # Distinct class so K3s built-in Traefik (kube-system) does not claim our Ingresses.
+        # Use ingressClassName: traefik-argocd in Ingresses; access via this deployment's NodePort.
         ingressClass:
           enabled: true
           isDefaultClass: false
-          name: traefik
+          name: traefik-argocd
         # Cluster-wide RBAC so Traefik can read Ingress/Service/Endpoints in monitoring-stage (fixes 503)
         rbac:
           namespaced: false
         providers:
           kubernetesIngress:
             enabled: true
-            ingressClass: traefik
+            ingressClass: traefik-argocd
             # Empty = watch all namespaces (required for Ingress in monitoring-stage)
             namespaces: []
           kubernetesCRD:
             enabled: true
-            ingressClass: traefik
+            ingressClass: traefik-argocd
             namespaces: []
           kubernetesGateway:
             enabled: false
-        # Gateway stays enabled (port 8000); we use Kubernetes Ingress with class "traefik"
-        # so only Ingresses with ingressClassName: traefik go here (nginx handles the rest)
+        # Local/K3s: get NodePort with: kubectl get svc -n traefik -o jsonpath='{.items[?(@.spec.ports[0].name=="web")].spec.ports[0].nodePort}'
+        # Then open http://<host>:<nodePort> with Host header or /etc/hosts for stage demoapp hosts.
         service:
           type: NodePort
   destination:
