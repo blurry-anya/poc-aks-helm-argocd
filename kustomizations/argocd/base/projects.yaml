@@ -35,3 +35,21 @@ spec:
       kind: '*'
   orphanedResources:
     warn: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: observability-stage
+  namespace: argocd
+spec:
+  description: Project for observability stage (Traefik ingress)
+  sourceRepos:
+    - https://github.com/sixthnode/poc-aks-helm-argocd.git
+  destinations:
+    - namespace: '*'
+      server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true

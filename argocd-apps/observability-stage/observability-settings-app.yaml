@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-stage-settings-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: observability-stage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring-stage
+  source:
+    repoURL: 'https://github.com/sixthnode/poc-aks-helm-argocd.git'
+    path: kustomizations/observability/overlays/stage
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - ApplyOutOfSync=true
+      - Replace=true
+      - Prune=true
+

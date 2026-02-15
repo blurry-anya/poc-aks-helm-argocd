@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-stage-aoa
+  namespace: argocd
+spec:
+  project: observability-stage
+  source:
+    repoURL: 'https://github.com/sixthnode/poc-aks-helm-argocd.git'
+    path: argocd-apps/observability-stage
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring-stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

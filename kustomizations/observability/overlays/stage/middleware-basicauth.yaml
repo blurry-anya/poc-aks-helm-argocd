@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: echo-basicauth
+spec:
+  basicAuth:
+    secret: bw-basic-auth
+    realm: "Authentication Required"

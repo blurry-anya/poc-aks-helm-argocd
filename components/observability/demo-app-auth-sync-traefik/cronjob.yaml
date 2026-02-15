@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: demo-app-auth-sync-traefik
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: demo-app-auth-sync-traefik
+        spec:
+          serviceAccountName: demo-app-auth-sync-traefik-sa
+          restartPolicy: Never
+          containers:
+            - name: worker
+              image: alpine:3.19
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  apk add --no-cache openssl curl apache2-utils
+                  curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                  chmod +x kubectl && mv kubectl /usr/local/bin/
+                  /work/run.sh
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              volumeMounts:
+                - name: script
+                  mountPath: /work
+                  readOnly: true
+          volumes:
+            - name: script
+              configMap:
+                name: demo-app-auth-sync-traefik-script
+                defaultMode: 0o755
+      backoffLimit: 2

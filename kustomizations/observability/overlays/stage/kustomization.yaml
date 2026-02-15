@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring-stage
+
+labels:
+  - includeSelectors: true
+    pairs:
+      env: stage
+
+components:
+  - ../../../../components/observability/demo-app-auth-sync-traefik
+
+resources:
+  # Traefik BasicAuth Middleware (references Secret bw-basic-auth, key "users")
+  - middleware-basicauth.yaml
+  - ingress-echo-app.yaml
