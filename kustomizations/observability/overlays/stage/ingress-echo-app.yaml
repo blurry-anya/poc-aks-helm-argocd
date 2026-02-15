@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: echo-app-ingress-external
   annotations:
+    argocd.argoproj.io/sync-wave: "1"
     # Attach Traefik BasicAuth middleware (namespace-middleware@kubernetescrd)
     traefik.ingress.kubernetes.io/router.middlewares: monitoring-stage-echo-basicauth@kubernetescrd
 spec:
