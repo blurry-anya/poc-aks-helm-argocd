@@ -6,7 +6,8 @@ metadata:
 spec:
   description: Project for infrastructure components
   sourceRepos:
-    - '*'
+    - https://github.com/sixthnode/poc-aks-helm-argocd.git
+    - https://kubernetes.github.io/ingress-nginx
   destinations:
     - namespace: '*'
       server: 'https://kubernetes.default.svc'
@@ -24,7 +25,7 @@ metadata:
 spec:
   description: Project for observability components
   sourceRepos:
-    - '*'
+    - https://github.com/sixthnode/poc-aks-helm-argocd.git
   destinations:
     - namespace: '*'
       server: 'https://kubernetes.default.svc'
