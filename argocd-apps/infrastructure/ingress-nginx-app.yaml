@@ -16,8 +16,8 @@ spec:
           publishService:
             enabled: true
           service:
-            type: LoadBalancer
-            # loadBalancerIP: 98.71.215.58  # set in overlay for AKS; leave unset for Rancher Desktop
+            # NodePort works locally (Rancher Desktop); use overlay with type: LoadBalancer (+ loadBalancerIP) for AKS
+            type: NodePort
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
