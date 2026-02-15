@@ -27,9 +27,9 @@ data:
       echo "${user}:$(echo -n "$pass" | base64)" >> "$AUTH_LIST"
     done
 
-    echo "Creating/updating Secret ${SECRET_NAME}..."
+    echo "Creating/updating Secret ${SECRET_NAME} (key 'auth' for ingress-nginx)..."
     kubectl create secret generic "$SECRET_NAME" \
-      --from-file=auth-file="$HTPASSWD_FILE" \
+      --from-file=auth="$HTPASSWD_FILE" \
       --namespace="$NAMESPACE" \
       --dry-run=client -o yaml | kubectl apply -f -
 
