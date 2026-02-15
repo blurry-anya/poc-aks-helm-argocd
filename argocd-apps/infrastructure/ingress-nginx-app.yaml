@@ -13,6 +13,8 @@ spec:
       releaseName: ingress-nginx
       values: |
         controller:
+          publishService:
+            enabled: true
           service:
             type: LoadBalancer
             # loadBalancerIP: 98.71.215.58  # set in overlay for AKS; leave unset for Rancher Desktop
