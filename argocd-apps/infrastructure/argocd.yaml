@@ -7,7 +7,7 @@ metadata:
 spec:
   project: infrastructure
   source:
-    repoURL: 'https://github.com/blurry-anya/poc-aks-helm-argocd.git'
+    repoURL: 'https://github.com/sixthnode/poc-aks-helm-argocd.git'
     path: kustomizations/argocd
     targetRevision: HEAD
   destination:

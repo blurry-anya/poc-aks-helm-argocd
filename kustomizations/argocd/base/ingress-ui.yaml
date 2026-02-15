@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: argo.blurryfaced.xyz
+    - host: argo.sixthnode.xyz
       http:
         paths:
           - path: /
