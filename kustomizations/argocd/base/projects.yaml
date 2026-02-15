@@ -23,6 +23,7 @@ metadata:
   namespace: argocd
 spec:
   description: Project for observability components
+  sourceRepos:
     - '*'
   destinations:
     - namespace: '*'
