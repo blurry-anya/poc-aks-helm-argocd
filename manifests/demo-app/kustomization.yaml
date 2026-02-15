@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Do not set namespace here so ArgoCD applies destination.namespace (monitoring / monitoring-stage)
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  # ns.yaml omitted: use Application syncOptions CreateNamespace=true for destination namespace
+commonLabels:
+  app.kubernetes.io/name: echo-server
+  app.kubernetes.io/part-of: demo-app
