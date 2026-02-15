@@ -17,6 +17,9 @@ spec:
           enabled: true
           isDefaultClass: false
           name: traefik
+        # Cluster-wide RBAC so Traefik can read Ingress/Service/Endpoints in monitoring-stage (fixes 503)
+        rbac:
+          namespaced: false
         providers:
           kubernetesIngress:
             enabled: true
