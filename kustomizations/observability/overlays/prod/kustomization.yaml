@@ -8,7 +8,8 @@ labels:
       env: prod
 
 components:
-  - ../../components/observability/demo-app-auth-sync
+  # From overlays/prod, go up to repo root then into components
+  - ../../../../components/observability/demo-app-auth-sync
   
 resources:
   - ingress-echo-app.yaml
