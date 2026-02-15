@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: "39.0.0"
+    helm:
+      releaseName: traefik
+      values: |
+        # Run alongside ingress-nginx: distinct ingress class, NodePort for local
+        ingressClass:
+          enabled: true
+          isDefaultClass: false
+          name: traefik
+        providers:
+          kubernetesIngress:
+            enabled: true
+            ingressClass: traefik
+          kubernetesCRD:
+            enabled: true
+            ingressClass: traefik
+          kubernetesGateway:
+            enabled: false
+        # Gateway stays enabled (port 8000); we use Kubernetes Ingress with class "traefik"
+        # so only Ingresses with ingressClassName: traefik go here (nginx handles the rest)
+        service:
+          type: NodePort
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

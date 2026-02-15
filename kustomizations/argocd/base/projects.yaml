@@ -8,6 +8,7 @@ spec:
   sourceRepos:
     - https://github.com/sixthnode/poc-aks-helm-argocd.git
     - https://kubernetes.github.io/ingress-nginx
+    - https:/trafik.github.io/charts
   destinations:
     - namespace: '*'
       server: 'https://kubernetes.default.svc'

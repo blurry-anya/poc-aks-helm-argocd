@@ -1,0 +1,23 @@
+# Traefik values: run alongside ingress-nginx for future migration.
+# Used as reference; the ArgoCD Application uses inline values from this file.
+# For AKS: set service.type to LoadBalancer and optionally loadBalancerIP.
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik
+
+providers:
+  kubernetesIngress:
+    enabled: true
+    ingressClass: traefik
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik
+  kubernetesGateway:
+    enabled: false
+
+service:
+  type: NodePort
+  # For AKS: type: LoadBalancer
+  # loadBalancerIP: <your-static-ip>
