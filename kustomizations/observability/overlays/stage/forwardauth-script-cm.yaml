@@ -1,0 +1,80 @@
+# Script for ForwardAuth: merges multiple htpasswd secrets and validates Basic auth.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-app-forwardauth-script
+data:
+  forward_auth.py: |
+    #!/usr/bin/env python3
+    """Traefik ForwardAuth: validate Basic auth against multiple htpasswd secret files."""
+    import os
+    import base64
+    import sys
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    SECRETS_DIR = "/etc/auth-secrets"
+    MERGED_FILE = "/tmp/all.htpasswd"
+    PORT = 8080
+
+    def load_htpasswd():
+        merged = []
+        if os.path.isdir(SECRETS_DIR):
+            for name in sorted(os.listdir(SECRETS_DIR)):
+                path = os.path.join(SECRETS_DIR, name, "users")
+                if os.path.isfile(path):
+                    with open(path, "r") as f:
+                        merged.extend(f.read().strip().splitlines())
+        with open(MERGED_FILE, "w") as f:
+            f.write("\n".join(merged) + "\n" if merged else "")
+        print(f"Loaded {len(merged)} users from secrets into {MERGED_FILE}")
+
+    def check_password(user: str, password: str) -> bool:
+        try:
+            import subprocess
+            r = subprocess.run(
+                ["htpasswd", "-vb", MERGED_FILE, user, password],
+                capture_output=True,
+                timeout=5,
+            )
+            return r.returncode == 0
+        except Exception:
+            return False
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self._auth_check()
+        def do_POST(self):
+            self._auth_check()
+        def do_HEAD(self):
+            self._auth_check()
+
+        def _auth_check(self):
+            auth = self.headers.get("Authorization")
+            if not auth or not auth.startswith("Basic "):
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="Authentication Required"')
+                self.end_headers()
+                return
+            try:
+                raw = base64.b64decode(auth[6:].strip()).decode("utf-8")
+                user, _, password = raw.partition(":")
+            except Exception:
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="Authentication Required"')
+                self.end_headers()
+                return
+            if not user or not check_password(user, password):
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="Authentication Required"')
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("X-Forwarded-User", user)
+            self.end_headers()
+
+        def log_message(self, format, *args):
+            pass
+
+    if __name__ == "__main__":
+        load_htpasswd()
+        HTTPServer(("", PORT), Handler).serve_forever()

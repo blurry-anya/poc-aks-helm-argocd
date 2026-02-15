@@ -4,8 +4,8 @@ metadata:
   name: echo-app-stage-ingress-external
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    # Attach Traefik BasicAuth middleware (namespace-middleware@kubernetescrd)
-    traefik.ingress.kubernetes.io/router.middlewares: monitoring-stage-echo-basicauth@kubernetescrd
+    # ForwardAuth: validates against multiple bw-basic-auth-* secrets (5 users each)
+    traefik.ingress.kubernetes.io/router.middlewares: monitoring-stage-echo-forwardauth@kubernetescrd
 spec:
   ingressClassName: traefik-argocd
   rules:

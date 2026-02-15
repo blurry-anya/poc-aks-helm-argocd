@@ -7,36 +7,41 @@ data:
     #!/bin/sh
     set -e
     NAMESPACE="${POD_NAMESPACE:-monitoring-stage}"
-    SECRET_NAME="bw-basic-auth"
     CONFIGMAP_NAME="demo-app-generated-auth"
-    HTPASSWD_FILE="/tmp/htpasswd"
+    # POC: 20 users split into 4 secrets (5 users each) to stay under 1MB/secret and support ForwardAuth
+    USERS_PER_SECRET=5
+    TOTAL_USERS=20
+    SECRET_PREFIX="bw-basic-auth"
     AUTH_LIST="/tmp/auth-list.txt"
 
-    echo "Generating 10 random users for basic auth (namespace=$NAMESPACE)..."
+    echo "Generating ${TOTAL_USERS} users in $((TOTAL_USERS / USERS_PER_SECRET)) secrets (${USERS_PER_SECRET} users each, namespace=$NAMESPACE)..."
 
-    : > "$HTPASSWD_FILE"
     : > "$AUTH_LIST"
 
-    for i in $(seq 1 10); do
-      user="demouser$(printf '%02d' "$i")"
-      pass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 16)
-      # APR1 format (Apache/nginx compatible); openssl passwd -1 is not accepted by nginx
-      htpasswd -nb "$user" "$pass" >> "$HTPASSWD_FILE"
-      # Store user:base64(pass) for reference in ConfigMap
-      echo "${user}:$(echo -n "$pass" | base64)" >> "$AUTH_LIST"
+    for secret_index in $(seq 1 $((TOTAL_USERS / USERS_PER_SECRET))); do
+      HTPASSWD_FILE="/tmp/htpasswd-${secret_index}"
+      : > "$HTPASSWD_FILE"
+      start=$(( (secret_index - 1) * USERS_PER_SECRET + 1 ))
+      end=$(( secret_index * USERS_PER_SECRET ))
+      for i in $(seq $start $end); do
+        user="demouser$(printf '%02d' "$i")"
+        pass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 16)
+        htpasswd -nb "$user" "$pass" >> "$HTPASSWD_FILE"
+        echo "${user}:$(echo -n "$pass" | base64)" >> "$AUTH_LIST"
+      done
+      SECRET_NAME="${SECRET_PREFIX}-${secret_index}"
+      echo "Creating/updating Secret ${SECRET_NAME} (key 'users', ${USERS_PER_SECRET} users)..."
+      kubectl create secret generic "$SECRET_NAME" \
+        --from-file=users="$HTPASSWD_FILE" \
+        --namespace="$NAMESPACE" \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl label secret "$SECRET_NAME" -n "$NAMESPACE" demo-app-basicauth=true --overwrite
     done
-
-    echo "Creating/updating Secret ${SECRET_NAME} (key 'users' for Traefik BasicAuth Middleware)..."
-    kubectl create secret generic "$SECRET_NAME" \
-      --from-file=users="$HTPASSWD_FILE" \
-      --namespace="$NAMESPACE" \
-      --dry-run=client -o yaml | kubectl apply -f -
 
     echo "Creating/updating ConfigMap ${CONFIGMAP_NAME}..."
     kubectl create configmap "$CONFIGMAP_NAME" \
-      --from-file=htpasswd="$HTPASSWD_FILE" \
       --from-file=credentials="$AUTH_LIST" \
       --namespace="$NAMESPACE" \
       --dry-run=client -o yaml | kubectl apply -f -
 
-    echo "Done. Secret used by external ingress; ConfigMap holds reference copy."
+    echo "Done. Secrets ${SECRET_PREFIX}-1..$((TOTAL_USERS / USERS_PER_SECRET)) used by ForwardAuth; ConfigMap holds reference copy."

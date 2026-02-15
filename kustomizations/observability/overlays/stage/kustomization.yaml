@@ -11,8 +11,10 @@ components:
   - ../../../../components/observability/demo-app-auth-sync-traefik
 
 resources:
-  # Traefik BasicAuth Middleware (references Secret bw-basic-auth, key "users")
-  - middleware-basicauth.yaml
+  # ForwardAuth: multiple secrets (bw-basic-auth-1..4, 5 users each)
+  - forwardauth-script-cm.yaml
+  - forwardauth-deployment.yaml
+  - middleware-forwardauth.yaml
   - ingress-echo-app.yaml
-  # Debug: no-auth ingress to test backend (remove when 503 is resolved)
+  # Debug: no-auth ingress to test backend (remove when done)
   - ingress-echo-app-debug-noauth.yaml

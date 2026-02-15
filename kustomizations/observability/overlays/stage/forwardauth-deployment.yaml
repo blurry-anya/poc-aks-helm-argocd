@@ -1,0 +1,71 @@
+# ForwardAuth service: validates Basic auth against multiple Secrets (bw-basic-auth-1..4).
+# Secrets are created by demo-app-auth-sync-traefik. If the pod stays Pending, run the sync once:
+#   kubectl create job -n monitoring-stage auth-sync-once --from=cronjob/demo-app-auth-sync-traefik
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-forwardauth
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app-forwardauth
+  template:
+    metadata:
+      labels:
+        app: demo-app-forwardauth
+    spec:
+      containers:
+        - name: forwardauth
+          image: python:3.11-alpine
+          command:
+            - sh
+            - -c
+            - apk add --no-cache apache2-utils && exec python3 /app/forward_auth.py
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+            - name: auth-secrets
+              mountPath: /etc/auth-secrets
+              readOnly: true
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+      volumes:
+        - name: script
+          configMap:
+            name: demo-app-forwardauth-script
+            defaultMode: 0o755
+        - name: auth-secrets
+          projected:
+            sources:
+              - secret:
+                  name: bw-basic-auth-1
+              - secret:
+                  name: bw-basic-auth-2
+              - secret:
+                  name: bw-basic-auth-3
+              - secret:
+                  name: bw-basic-auth-4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-app-forwardauth
+spec:
+  selector:
+    app: demo-app-forwardauth
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

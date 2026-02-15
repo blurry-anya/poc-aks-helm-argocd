@@ -1,0 +1,13 @@
+# ForwardAuth: validate Basic auth via demo-app-forwardauth (reads multiple bw-basic-auth-* secrets).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: echo-forwardauth
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  forwardAuth:
+    address: http://demo-app-forwardauth
+    authResponseHeaders:
+      - X-Forwarded-User
+    trustForwardHeader: true
