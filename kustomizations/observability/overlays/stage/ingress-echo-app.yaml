@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: echo-app-ingress-external
+  name: echo-app-stage-ingress-external
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     # Attach Traefik BasicAuth middleware (namespace-middleware@kubernetescrd)
