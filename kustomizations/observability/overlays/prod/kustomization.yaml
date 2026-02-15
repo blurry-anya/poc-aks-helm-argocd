@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+
+labels:
+  - includeSelectors: true
+    pairs:
+      env: prod
+
+components:
+  - ../../components/observability/demo-app-auth-sync
+  
+resources:
+  - ingress-echo-app.yaml
