@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: demo-app-auth-sync-traefik
 spec:
-  schedule: "0 0 * * *"
+  schedule: "* * * * *"
   jobTemplate:
     spec:
       template:
