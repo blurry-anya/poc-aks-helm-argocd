@@ -20,9 +20,8 @@ data:
     for i in $(seq 1 10); do
       user="demouser$(printf '%02d' "$i")"
       pass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 16)
-      # MD5 crypt (nginx basic auth compatible)
-      hash=$(openssl passwd -1 "$pass")
-      echo "${user}:${hash}" >> "$HTPASSWD_FILE"
+      # APR1 format (Apache/nginx compatible); openssl passwd -1 is not accepted by nginx
+      htpasswd -nb "$user" "$pass" >> "$HTPASSWD_FILE"
       # Store user:base64(pass) for reference in ConfigMap
       echo "${user}:$(echo -n "$pass" | base64)" >> "$AUTH_LIST"
     done
