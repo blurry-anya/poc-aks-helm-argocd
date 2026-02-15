@@ -14,7 +14,8 @@ spec:
     namespace: monitoring
   syncPolicy:
     automated:
-      prune: true
+      # Prune off: observability-settings-app also deploys to monitoring
+      prune: false
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

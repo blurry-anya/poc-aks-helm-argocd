@@ -14,8 +14,7 @@ spec:
     namespace: monitoring-stage
   syncPolicy:
     automated:
-      # Prune disabled: observability-stage-settings-app also deploys to monitoring-stage
-      # (Middleware, Ingress, auth-sync). Pruning would delete those and cause sync thrashing.
+      # Prune off: observability-stage-settings-app also deploys to monitoring-stage
       prune: false
       selfHeal: true
     syncOptions:

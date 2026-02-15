@@ -16,12 +16,9 @@ spec:
     targetRevision: HEAD
   syncPolicy:
     automated:
-      prune: true
+      # Prune off: demo-app also deploys to monitoring-stage; pruning would remove its resources
+      prune: false
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
-      - ApplyOutOfSync=true
-      - Replace=true
-      - Prune=true
 
