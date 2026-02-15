@@ -14,6 +14,17 @@ spec:
     repoURL: 'https://github.com/sixthnode/poc-aks-helm-argocd.git'
     path: kustomizations/observability/overlays/stage
     targetRevision: HEAD
+  # Avoid sync loop: Ingress status and server-managed metadata change (Traefik, resourceVersion)
+  ignoreDifferences:
+    - group: networking.k8s.io
+      kind: Ingress
+      jsonPointers:
+        - /status
+        - /metadata/resourceVersion
+        - /metadata/generation
+        - /metadata/uid
+        - /metadata/creationTimestamp
+        - /metadata/managedFields
   syncPolicy:
     automated:
       # Prune off: demo-app also deploys to monitoring-stage; pruning would remove its resources
