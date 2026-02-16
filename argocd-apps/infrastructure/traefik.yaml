@@ -17,7 +17,7 @@ spec:
       helm:
         releaseName: traefik
         valueFiles:
-          - $values/values.yaml
+          - $values/charts/traefik/values.yaml
     - repoURL: https://github.com/sixthnode/poc-aks-helm-argocd.git
       path: kustomizations/traefik-auth
       targetRevision: HEAD
