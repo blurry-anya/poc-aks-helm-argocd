@@ -5,38 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: infrastructure
-  source:
-    repoURL: https://traefik.github.io/charts
-    chart: traefik
-    targetRevision: "39.0.0"
-    helm:
-      releaseName: traefik
-      values: |
-        # Distinct class so K3s built-in Traefik (kube-system) does not claim our Ingresses.
-        # Use ingressClassName: traefik-argocd in Ingresses; access via this deployment's NodePort.
-        ingressClass:
-          enabled: true
-          isDefaultClass: false
-          name: traefik-argocd
-        # Cluster-wide RBAC so Traefik can read Ingress/Service/Endpoints in monitoring-stage (fixes 503)
-        rbac:
-          namespaced: false
-        providers:
-          kubernetesIngress:
-            enabled: true
-            ingressClass: traefik-argocd
-            # Empty = watch all namespaces (required for Ingress in monitoring-stage)
-            namespaces: []
-          kubernetesCRD:
-            enabled: true
-            ingressClass: traefik-argocd
-            namespaces: []
-          kubernetesGateway:
-            enabled: false
-        # Local/K3s: get NodePort with: kubectl get svc -n traefik -o jsonpath='{.items[?(@.spec.ports[0].name=="web")].spec.ports[0].nodePort}'
-        # Then open http://<host>:<nodePort> with Host header or /etc/hosts for stage demoapp hosts.
-        service:
-          type: NodePort
+  # Single app: Helm chart (values from repo) + auth PVC/CronJob (kustomizations/traefik-auth) in traefik namespace
+  sources:
+    - repoURL: https://github.com/sixthnode/poc-aks-helm-argocd.git
+      path: charts/traefik
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://traefik.github.io/charts
+      chart: traefik
+      targetRevision: "39.0.0"
+      helm:
+        releaseName: traefik
+        valueFiles:
+          - $values/values.yaml
+    - repoURL: https://github.com/sixthnode/poc-aks-helm-argocd.git
+      path: kustomizations/traefik-auth
+      targetRevision: HEAD
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik

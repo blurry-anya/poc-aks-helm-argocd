@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: traefik
+# All auth-sync resources (PVC, CronJob, script, RBAC) live in the component.
+components:
+  - ../../components/observability/demo-app-auth-sync-traefik

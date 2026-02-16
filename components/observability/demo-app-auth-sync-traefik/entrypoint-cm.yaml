@@ -6,42 +6,35 @@ data:
   run.sh: |
     #!/bin/sh
     set -e
-    NAMESPACE="${POD_NAMESPACE:-monitoring-stage}"
-    CONFIGMAP_NAME="demo-app-generated-auth"
-    # POC: 20 users split into 4 secrets (5 users each) to stay under 1MB/secret and support ForwardAuth
-    USERS_PER_SECRET=5
+    NAMESPACE="${POD_NAMESPACE}"
+    AUTH_DATA_DIR="${AUTH_DATA_DIR:-/data/auth}"
     TOTAL_USERS=20
-    SECRET_PREFIX="bw-basic-auth"
-    AUTH_LIST="/tmp/auth-list.txt"
+    # One run: produce users-stage.htpasswd and users-prod.htpasswd + reference ConfigMaps for both
+    AUTH_ENVS="${AUTH_ENVS:-stage prod}"
 
-    echo "Generating ${TOTAL_USERS} users in $((TOTAL_USERS / USERS_PER_SECRET)) secrets (${USERS_PER_SECRET} users each, namespace=$NAMESPACE)..."
+    mkdir -p "$AUTH_DATA_DIR"
 
-    : > "$AUTH_LIST"
+    for AUTH_ENV in $AUTH_ENVS; do
+      HTPASSWD_FILE="${AUTH_DATA_DIR}/users-${AUTH_ENV}.htpasswd"
+      AUTH_LIST="${AUTH_DATA_DIR}/credentials-${AUTH_ENV}.txt"
+      CONFIGMAP_NAME="demo-app-generated-auth-${AUTH_ENV}"
 
-    for secret_index in $(seq 1 $((TOTAL_USERS / USERS_PER_SECRET))); do
-      HTPASSWD_FILE="/tmp/htpasswd-${secret_index}"
+      echo "Writing ${TOTAL_USERS} users (env=${AUTH_ENV}) to ${HTPASSWD_FILE}..."
       : > "$HTPASSWD_FILE"
-      start=$(( (secret_index - 1) * USERS_PER_SECRET + 1 ))
-      end=$(( secret_index * USERS_PER_SECRET ))
-      for i in $(seq $start $end); do
+      : > "$AUTH_LIST"
+
+      for i in $(seq 1 $TOTAL_USERS); do
         user="demouser$(printf '%02d' "$i")"
         pass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 16)
         htpasswd -nb "$user" "$pass" >> "$HTPASSWD_FILE"
         echo "${user}:$(echo -n "$pass" | base64)" >> "$AUTH_LIST"
       done
-      SECRET_NAME="${SECRET_PREFIX}-${secret_index}"
-      echo "Creating/updating Secret ${SECRET_NAME} (key 'users', ${USERS_PER_SECRET} users)..."
-      kubectl create secret generic "$SECRET_NAME" \
-        --from-file=users="$HTPASSWD_FILE" \
+
+      echo "Creating/updating ConfigMap ${CONFIGMAP_NAME} in ${NAMESPACE}..."
+      kubectl create configmap "$CONFIGMAP_NAME" \
+        --from-file=credentials="$AUTH_LIST" \
         --namespace="$NAMESPACE" \
         --dry-run=client -o yaml | kubectl apply -f -
-      kubectl label secret "$SECRET_NAME" -n "$NAMESPACE" demo-app-basicauth=true --overwrite
+
+      echo "Done env=${AUTH_ENV}. Traefik middleware my-basic-auth-${AUTH_ENV}@file uses ${HTPASSWD_FILE}."
     done
-
-    echo "Creating/updating ConfigMap ${CONFIGMAP_NAME}..."
-    kubectl create configmap "$CONFIGMAP_NAME" \
-      --from-file=credentials="$AUTH_LIST" \
-      --namespace="$NAMESPACE" \
-      --dry-run=client -o yaml | kubectl apply -f -
-
-    echo "Done. Secrets ${SECRET_PREFIX}-1..$((TOTAL_USERS / USERS_PER_SECRET)) used by ForwardAuth; ConfigMap holds reference copy."

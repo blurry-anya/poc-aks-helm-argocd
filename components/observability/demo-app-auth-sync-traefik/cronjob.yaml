@@ -30,13 +30,22 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
+                - name: AUTH_DATA_DIR
+                  value: /data/auth
+                - name: AUTH_ENVS
+                  value: "stage prod"
               volumeMounts:
                 - name: script
                   mountPath: /work
                   readOnly: true
+                - name: auth-data
+                  mountPath: /data/auth
           volumes:
             - name: script
               configMap:
                 name: demo-app-auth-sync-traefik-script
                 defaultMode: 0o755
+            - name: auth-data
+              persistentVolumeClaim:
+                claimName: traefik-auth-htpasswd-pvc
       backoffLimit: 2

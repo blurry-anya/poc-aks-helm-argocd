@@ -1,23 +1,48 @@
-# Traefik values: run alongside ingress-nginx for future migration.
-# Used as reference; the ArgoCD Application uses inline values from this file.
-# For AKS: set service.type to LoadBalancer and optionally loadBalancerIP.
+# Traefik: run alongside ingress-nginx. For AKS: service.type LoadBalancer, optional loadBalancerIP.
 
 ingressClass:
   enabled: true
   isDefaultClass: false
-  name: traefik
+  name: traefik-argocd
+
+rbac:
+  namespaced: false
 
 providers:
   kubernetesIngress:
     enabled: true
-    ingressClass: traefik
+    ingressClass: traefik-argocd
+    namespaces: []
   kubernetesCRD:
     enabled: true
-    ingressClass: traefik
+    ingressClass: traefik-argocd
+    namespaces: []
   kubernetesGateway:
     enabled: false
+  file:
+    enabled: true
+    watch: true
+    content: |
+      http:
+        middlewares:
+          my-basic-auth-stage:
+            basicAuth:
+              usersFile: "/etc/traefik/auth/users-stage.htpasswd"
+          my-basic-auth-prod:
+            basicAuth:
+              usersFile: "/etc/traefik/auth/users-prod.htpasswd"
+
+deployment:
+  additionalVolumes:
+    - name: auth-users
+      persistentVolumeClaim:
+        claimName: traefik-auth-htpasswd-pvc
+
+additionalVolumeMounts:
+  - name: auth-users
+    mountPath: /etc/traefik/auth
 
 service:
   type: NodePort
-  # For AKS: type: LoadBalancer
+  # AKS: type: LoadBalancer
   # loadBalancerIP: <your-static-ip>

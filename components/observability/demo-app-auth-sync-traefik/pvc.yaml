@@ -1,0 +1,13 @@
+# ReadWriteMany so CronJob and Traefik (when mounted in traefik ns) can use it.
+# Traefik File Provider reads users.htpasswd from this volume at /etc/traefik/auth.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: traefik-auth-htpasswd-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  # storageClassName: set in overlay if default does not support RWX
